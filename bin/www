@@ -1,0 +1,135 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('app:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3001');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+// server.listen(port);
+// server.on('error', onError);
+// server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+    var port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
+
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+var net = require('net');
+
+// var HOST = '127.0.0.1';
+var PORT = 3001;
+function logDataStream(data){
+    // log the binary data stream in rows of 8 bits
+    var print = "";
+    for (var i = 0; i < data.length; i++) {
+        print += " " + data[i].toString(16);
+
+        // apply proper format for bits with value < 16, observed as int tuples
+        if (data[i] < 16) { print += "0"; }
+
+        // insert a line break after every 8th bit
+        if ((i + 1) % 8 === 0) {
+            print += '\n';
+        };
+    }
+
+    // log the stream
+    console.log(print);
+}
+
+net.createServer(function(sock) {
+
+    // We have a connection - a socket object is assigned to the connection automatically
+    console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
+
+    // Add a 'data' event handler to this instance of socket
+    sock.on('data', function(data) {
+        console.log('DATA str' + sock.remoteAddress + ': ' + data);
+        console.log('DATA str' + sock.remoteAddress + ': ' + logDataStream(data));
+        // Write the data back to the socket, the client will receive it as data from the server
+        sock.write('You said "' + data + '"');
+    });
+
+    // Add a 'close' event handler to this instance of socket
+    sock.on('close', function(data) {
+        console.log('CLOSED: ' + sock.remoteAddress +' '+ sock.remotePort);
+    });
+
+}).listen(PORT);
+
+console.log('Server listening on :'+ PORT);
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+}
