@@ -101,16 +101,24 @@ function logDataStream(data){
 }
 
 net.createServer(function(sock) {
-
+    const fs = require('fs');
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + sock.remoteAddress +':'+ sock.remotePort);
 
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
-        console.log('DATA str' + sock.remoteAddress + ': ' + data);
-        console.log('DATA str' + sock.remoteAddress + ': ' + logDataStream(data));
+        // let readStream = fs.createReadStream(data);
+        // let createStream = fs.createWriteStream('./upload/data');
+        fs.writeFile('./upload/data', data, 'binary', function(err) {
+            if (err) { throw err; }
+        });
+        // readStream.pipe(createStream);
+        console.log('DATA isEncoding' + sock.remoteAddress + ': ' + Buffer(data.toString('binary', 0, 15)).toString('hex'));
+        //console.log('DATA str0' + sock.remoteAddress + ': ' + Buffer(data, 'binary').toString('hex'));
+        //console.log('DATA str1' + sock.remoteAddress + ': ' + Buffer.from(data));
+        //console.log('DATA str2' + sock.remoteAddress + ': ' + logDataStream(data));
         // Write the data back to the socket, the client will receive it as data from the server
-        sock.write('You said "' + data + '"');
+        sock.write('0100000B0039000100010A2E00000081010000000A0A322B0001010B5854413934323335373941373839383635014E89A7D00BF6E60808078C7905FFC9FFE4FFD5FF56FF45410000');
     });
 
     // Add a 'close' event handler to this instance of socket
